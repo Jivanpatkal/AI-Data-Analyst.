@@ -68,7 +68,7 @@ def render_header():
     st.markdown("""
     <div class="main-header">
         <h1>🤖 AI Data Analyst</h1>
-        <p class="creator-tag">Created by Jeevan Bhatkar</p>
+        <p class="creator-tag">Created by Jivan Patkal</p>
         <p>Upload your data and get instant insights,
            dashboards, and AI-powered reports.</p>
     </div>
@@ -371,7 +371,7 @@ def render_dashboard(df):
         html.append("<h1 style='text-align:center;color:#667eea'>"
                     "📊 AI Data Analyst Dashboard</h1>")
         html.append("<h4 style='text-align:center;color:gray'>"
-                    "Created by Jeevan Bhatkar</h4><hr>")
+                    "Created by Jivan Patkal</h4><hr>")
         for c in charts:
             html.append(f"<h3 style='color:#764ba2'>{c['title']}</h3>")
             html.append(pio.to_html(c["fig"], full_html=False,
@@ -650,8 +650,8 @@ st.markdown("---")
 st.markdown(
     "<div style='text-align:center;color:gray;font-size:0.85rem;padding:1rem'>"
     "🤖 <b>AI Data Analyst</b> &nbsp;|&nbsp; "
-    "Built by <b>Jeevan Bhatkar</b> &nbsp;|&nbsp; "
-    "Python · Pandas · Plotly · Claude AI"
+    "Built by <b>Jivan Patkal</b> &nbsp;|&nbsp; "
+    "Python · Pandas · Plotly"
     "</div>",
     unsafe_allow_html=True
 )
