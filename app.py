@@ -6,7 +6,7 @@ import plotly.io as pio
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="AI Data Analyst — Jivan Patkal",
+    page_title="AI Data Analyst — Jivan Patkal ",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="collapsed"
