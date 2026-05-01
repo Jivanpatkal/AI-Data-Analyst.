@@ -571,13 +571,7 @@ def render_report_section(df, user_requirement):
             placeholder="sk-ant-api03-...",
             help="Get your key from console.anthropic.com → API Keys"
         )
-    with api_col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.link_button(
-            "🔑 Get API Key",
-            "https://console.anthropic.com/api-keys",
-            use_container_width=True
-        )
+    
 
     # Validate key format
     if api_key and not api_key.startswith("sk-ant"):
