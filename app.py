@@ -715,150 +715,150 @@ if (st.session_state.get("run_complete")
         st.session_state.get("user_prompt", "")
     )
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SECTION 6: ASK YOUR DATA CHATBOT
-# ══════════════════════════════════════════════════════════════════════════════
-from modules.chatbot import (
-    build_system_prompt,
-    get_suggested_questions,
-    chat_with_data,
-    format_chat_history_as_text
-)
+# # ══════════════════════════════════════════════════════════════════════════════
+# # SECTION 6: ASK YOUR DATA CHATBOT
+# # ══════════════════════════════════════════════════════════════════════════════
+# from modules.chatbot import (
+#     build_system_prompt,
+#     get_suggested_questions,
+#     chat_with_data,
+#     format_chat_history_as_text
+# )
 
-def render_chatbot(df):
-    """Full chatbot UI with history, suggested questions, and export."""
-    st.markdown("---")
-    st.markdown("### 💬 Ask Your Data")
-    st.caption("Chat with your dataset using natural language.")
+# def render_chatbot(df):
+#     """Full chatbot UI with history, suggested questions, and export."""
+#     st.markdown("---")
+#     st.markdown("### 💬 Ask Your Data")
+#     st.caption("Chat with your dataset using natural language.")
 
-    # ── API key for chatbot ───────────────────────────────────────────────────
-    with st.expander("🔑 Chatbot API Key",
-                     expanded=not bool(st.session_state.chat_api_key)):
-        chat_key = st.text_input(
-            "Anthropic API Key for chatbot:",
-            type="password",
-            placeholder="sk-ant-...",
-            value=st.session_state.chat_api_key,
-            key="chat_key_input"
-        )
-        if chat_key:
-            st.session_state.chat_api_key = chat_key
-        st.caption("🔒 If you already generated a report, your key is pre-filled.")
+#     # ── API key for chatbot ───────────────────────────────────────────────────
+#     with st.expander("🔑 Chatbot API Key",
+#                      expanded=not bool(st.session_state.chat_api_key)):
+#         chat_key = st.text_input(
+#             "Anthropic API Key for chatbot:",
+#             type="password",
+#             placeholder="sk-ant-...",
+#             value=st.session_state.chat_api_key,
+#             key="chat_key_input"
+#         )
+#         if chat_key:
+#             st.session_state.chat_api_key = chat_key
+#         st.caption("🔒 If you already generated a report, your key is pre-filled.")
 
-    if not st.session_state.chat_api_key:
-        st.warning("⚠️ Enter your API key above to start chatting.")
-        return
+#     if not st.session_state.chat_api_key:
+#         st.warning("⚠️ Enter your API key above to start chatting.")
+#         return
 
-    # ── Build system prompt once per dataset ─────────────────────────────────
-    if not st.session_state.system_prompt:
-        with st.spinner("Initialising AI analyst..."):
-            st.session_state.system_prompt = build_system_prompt(df)
+#     # ── Build system prompt once per dataset ─────────────────────────────────
+#     if not st.session_state.system_prompt:
+#         with st.spinner("Initialising AI analyst..."):
+#             st.session_state.system_prompt = build_system_prompt(df)
 
-    # ── Suggested questions ───────────────────────────────────────────────────
-    st.markdown("**💡 Suggested Questions:**")
-    suggestions = get_suggested_questions(df)
+#     # ── Suggested questions ───────────────────────────────────────────────────
+#     st.markdown("**💡 Suggested Questions:**")
+#     suggestions = get_suggested_questions(df)
 
-    # Display as clickable pills in rows of 3
-    for i in range(0, len(suggestions), 3):
-        cols = st.columns(3)
-        for j, col in enumerate(cols):
-            idx = i + j
-            if idx < len(suggestions):
-                if col.button(suggestions[idx],
-                              key=f"sug_{idx}",
-                              use_container_width=True):
-                    # Add to history and trigger response
-                    st.session_state.chat_history.append(
-                        {"role": "user", "content": suggestions[idx]}
-                    )
-                    with st.spinner("🤖 Thinking..."):
-                        reply = chat_with_data(
-                            st.session_state.chat_history,
-                            st.session_state.chat_api_key,
-                            st.session_state.system_prompt
-                        )
-                    st.session_state.chat_history.append(
-                        {"role": "assistant", "content": reply}
-                    )
-                    st.rerun()
+#     # Display as clickable pills in rows of 3
+#     for i in range(0, len(suggestions), 3):
+#         cols = st.columns(3)
+#         for j, col in enumerate(cols):
+#             idx = i + j
+#             if idx < len(suggestions):
+#                 if col.button(suggestions[idx],
+#                               key=f"sug_{idx}",
+#                               use_container_width=True):
+#                     # Add to history and trigger response
+#                     st.session_state.chat_history.append(
+#                         {"role": "user", "content": suggestions[idx]}
+#                     )
+#                     with st.spinner("🤖 Thinking..."):
+#                         reply = chat_with_data(
+#                             st.session_state.chat_history,
+#                             st.session_state.chat_api_key,
+#                             st.session_state.system_prompt
+#                         )
+#                     st.session_state.chat_history.append(
+#                         {"role": "assistant", "content": reply}
+#                     )
+#                     st.rerun()
 
-    st.markdown("---")
+#     st.markdown("---")
 
-    # ── Chat history display ──────────────────────────────────────────────────
-    if st.session_state.chat_history:
-        st.markdown("**💬 Conversation:**")
-        chat_container = st.container()
+#     # ── Chat history display ──────────────────────────────────────────────────
+#     if st.session_state.chat_history:
+#         st.markdown("**💬 Conversation:**")
+#         chat_container = st.container()
 
-        with chat_container:
-            for msg in st.session_state.chat_history:
-                if msg["role"] == "user":
-                    with st.chat_message("user"):
-                        st.markdown(msg["content"])
-                else:
-                    with st.chat_message("assistant", avatar="🤖"):
-                        st.markdown(msg["content"])
-    else:
-        st.info("👆 Click a suggested question above or type below to start.")
+#         with chat_container:
+#             for msg in st.session_state.chat_history:
+#                 if msg["role"] == "user":
+#                     with st.chat_message("user"):
+#                         st.markdown(msg["content"])
+#                 else:
+#                     with st.chat_message("assistant", avatar="🤖"):
+#                         st.markdown(msg["content"])
+#     else:
+#         st.info("👆 Click a suggested question above or type below to start.")
 
-    # ── Chat input ────────────────────────────────────────────────────────────
-    user_input = st.chat_input(
-        "Ask anything about your data...",
-        key="chat_input"
-    )
+#     # ── Chat input ────────────────────────────────────────────────────────────
+#     user_input = st.chat_input(
+#         "Ask anything about your data...",
+#         key="chat_input"
+#     )
 
-    if user_input:
-        # Append user message
-        st.session_state.chat_history.append(
-            {"role": "user", "content": user_input}
-        )
+#     if user_input:
+#         # Append user message
+#         st.session_state.chat_history.append(
+#             {"role": "user", "content": user_input}
+#         )
 
-        # Get AI response
-        with st.spinner("🤖 Analysing..."):
-            try:
-                reply = chat_with_data(
-                    st.session_state.chat_history,
-                    st.session_state.chat_api_key,
-                    st.session_state.system_prompt
-                )
-                st.session_state.chat_history.append(
-                    {"role": "assistant", "content": reply}
-                )
-            except Exception as e:
-                st.error(f"❌ Chat error: {e}")
+#         # Get AI response
+#         with st.spinner("🤖 Analysing..."):
+#             try:
+#                 reply = chat_with_data(
+#                     st.session_state.chat_history,
+#                     st.session_state.chat_api_key,
+#                     st.session_state.system_prompt
+#                 )
+#                 st.session_state.chat_history.append(
+#                     {"role": "assistant", "content": reply}
+#                 )
+#             except Exception as e:
+#                 st.error(f"❌ Chat error: {e}")
 
-        st.rerun()
+#         st.rerun()
 
-    # ── Chat controls ─────────────────────────────────────────────────────────
-    if st.session_state.chat_history:
-        st.markdown("---")
-        ctrl1, ctrl2, ctrl3 = st.columns(3)
+#     # ── Chat controls ─────────────────────────────────────────────────────────
+#     if st.session_state.chat_history:
+#         st.markdown("---")
+#         ctrl1, ctrl2, ctrl3 = st.columns(3)
 
-        with ctrl1:
-            if st.button("🗑️ Clear Chat", use_container_width=True):
-                st.session_state.chat_history = []
-                st.rerun()
+#         with ctrl1:
+#             if st.button("🗑️ Clear Chat", use_container_width=True):
+#                 st.session_state.chat_history = []
+#                 st.rerun()
 
-        with ctrl2:
-            history_txt = format_chat_history_as_text(
-                st.session_state.chat_history
-            )
-            st.download_button(
-                "⬇️ Export Chat (TXT)",
-                history_txt.encode("utf-8"),
-                "chat_history.txt",
-                "text/plain",
-                use_container_width=True
-            )
+#         with ctrl2:
+#             history_txt = format_chat_history_as_text(
+#                 st.session_state.chat_history
+#             )
+#             st.download_button(
+#                 "⬇️ Export Chat (TXT)",
+#                 history_txt.encode("utf-8"),
+#                 "chat_history.txt",
+#                 "text/plain",
+#                 use_container_width=True
+#             )
 
-        with ctrl3:
-            turns = len(st.session_state.chat_history) // 2
-            st.metric("💬 Turns", turns)
+#         with ctrl3:
+#             turns = len(st.session_state.chat_history) // 2
+#             st.metric("💬 Turns", turns)
 
 
-# ── Render chatbot if data is ready ───────────────────────────────────────────
-if (st.session_state.get("run_complete")
-        and st.session_state.df_clean is not None):
-    render_chatbot(st.session_state.df_clean)
+# # ── Render chatbot if data is ready ───────────────────────────────────────────
+# if (st.session_state.get("run_complete")
+#         and st.session_state.df_clean is not None):
+#     render_chatbot(st.session_state.df_clean)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
