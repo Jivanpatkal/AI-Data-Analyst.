@@ -395,63 +395,275 @@ if (st.session_state.get("run_complete")
 from modules.ai_report  import generate_report, format_report_as_text
 from modules.downloader import report_to_txt, report_to_pdf
 
+
+def render_api_key_guide():
+    """
+    Step-by-step guide for users who don't know how to get an API key.
+    Shown as a collapsible expander — does not clutter the screen.
+    """
+    with st.expander(
+        "❓ Don't have an API Key? Click here — How to get one (Free guide)",
+        expanded=False
+    ):
+
+        # ── Important notice ──────────────────────────────────────────────────
+        st.warning(
+            "⚠️ **Important Notice:**\n\n"
+            "The **AI Report** and **Ask Your Data** chatbot features use "
+            "**Claude AI by Anthropic** — a third-party AI service.\n\n"
+            "💳 You pay **directly to Anthropic** — not to this application.\n\n"
+            "✅ **We do not charge you anything.**\n\n"
+            "This is an **advanced optional feature**. "
+            "The Dashboard and CSV download work **100% free** without any key."
+        )
+
+        st.markdown("---")
+
+        # ── What is an API key ────────────────────────────────────────────────
+        st.markdown("#### 🔑 What is an API Key?")
+        st.info(
+            "An API key is like a **password** that allows your app to use Claude AI.\n\n"
+            "Without it, the AI Report and Chatbot cannot work.\n\n"
+            "It looks like this: `sk-ant-api03-xxxxxxxxxxxxxxxx...`"
+        )
+
+        st.markdown("---")
+
+        # ── Steps ─────────────────────────────────────────────────────────────
+        st.markdown("#### 📋 Step-by-Step: Create Your Free API Key")
+
+        col1, col2 = st.columns(2, gap="large")
+
+        with col1:
+            st.markdown("""
+**Step 1 — Create Account**
+
+👉 Go to: [console.anthropic.com](https://console.anthropic.com)
+- Click **"Sign Up"**
+- Enter your email address
+- Verify your email
+- Complete profile setup
+
+---
+
+**Step 2 — Create API Key**
+- After login → click **"API Keys"** in the left menu
+- Click **"+ Create Key"**
+- Give it a name like `my-data-project`
+- Click **"Create Key"**
+- ⚠️ **Copy the key immediately** — you see it only ONCE!
+- Save it in Notepad or a safe place
+""")
+
+        with col2:
+            st.markdown("""
+**Step 3 — Add Credits (Required)**
+
+- Go to **"Billing"** in the console
+- Click **"Add Credits"**
+- Add minimum **$5** (~₹420)
+- Without credits the API will not work
+
+---
+
+**Step 4 — Paste Key Here**
+- Come back to this app
+- Paste your key in the box below
+- Click **"Generate AI Report"**
+- ✅ Done! Report ready in seconds
+""")
+
+        st.markdown("---")
+
+        # ── Pricing table ─────────────────────────────────────────────────────
+        st.markdown("#### 💰 How Much Does It Cost?")
+
+        price_df = pd.DataFrame({
+            "Usage": [
+                "1 AI Report (Full)",
+                "10 AI Reports",
+                "100 Chat messages",
+                "$5 total credit",
+            ],
+            "Cost (USD)": ["~$0.01", "~$0.10", "~$0.05", "Lasts months"],
+            "Cost (INR)": ["~₹1",    "~₹8",    "~₹4",    "~₹420 one-time"],
+        })
+        st.dataframe(price_df, use_container_width=True, hide_index=True)
+
+        st.success(
+            "✅ **$5 is more than enough for months of personal project use.**\n\n"
+            "This is one of the cheapest AI APIs available today."
+        )
+
+        st.markdown("---")
+
+        # ── Skip option ───────────────────────────────────────────────────────
+        st.markdown("#### 🚫 Want to Skip the AI Features?")
+        st.info(
+            "That is completely fine!\n\n"
+            "✅ **Dashboard** — works without API key (free)\n\n"
+            "✅ **Data Cleaning** — works without API key (free)\n\n"
+            "✅ **Download Cleaned CSV** — works without API key (free)\n\n"
+            "⚡ Only skip if you do not need AI-written reports or the chatbot."
+        )
+
+        st.markdown("---")
+
+        # ── Security note ─────────────────────────────────────────────────────
+        st.markdown("#### 🔒 Is My Key Safe?")
+        st.warning(
+            "🔐 Your API key is used **only in your current browser session**.\n\n"
+            "It is **never stored** on any server or database by this app.\n\n"
+            "When you close this tab, the key is gone automatically.\n\n"
+            "⚠️ **Never share your API key with anyone.**\n\n"
+            "If your key is accidentally exposed, go to "
+            "[console.anthropic.com](https://console.anthropic.com) "
+            "and delete it immediately, then create a new one."
+        )
+
+        st.markdown("---")
+
+        # ── Quick links ───────────────────────────────────────────────────────
+        st.markdown("#### 🔗 Quick Links")
+        lc1, lc2, lc3 = st.columns(3)
+        lc1.link_button(
+            "🌐 Anthropic Console",
+            "https://console.anthropic.com",
+            use_container_width=True
+        )
+        lc2.link_button(
+            "📖 API Documentation",
+            "https://docs.anthropic.com",
+            use_container_width=True
+        )
+        lc3.link_button(
+            "💳 Billing & Credits",
+            "https://console.anthropic.com/settings/billing",
+            use_container_width=True
+        )
+
+
 def render_report_section(df, user_requirement):
+    """
+    AI report section with built-in API key guide,
+    report type selector, generation, display, and downloads.
+    """
     st.markdown("---")
     st.markdown("### 🤖 AI-Powered Report")
+    st.caption(
+        "Uses **Claude AI by Anthropic** to generate professional business insights. "
+        "Requires a paid Anthropic API key."
+    )
 
-    with st.expander("🔑 API Key",
-                     expanded=not bool(st.session_state.report_text)):
-        api_key = st.text_input("Anthropic API Key:",
-                                type="password",
-                                placeholder="sk-ant-...")
-        st.caption("🔒 Never stored — session only.")
+    # ── Show API key guide FIRST ──────────────────────────────────────────────
+    render_api_key_guide()
 
-    c1, c2 = st.columns([1,2])
+    st.markdown("---")
+
+    # ── API Key input ─────────────────────────────────────────────────────────
+    st.markdown("#### 🔑 Enter Your API Key")
+
+    api_col1, api_col2 = st.columns([3, 1])
+    with api_col1:
+        api_key = st.text_input(
+            "Paste your Anthropic API key:",
+            type="password",
+            placeholder="sk-ant-api03-...",
+            help="Get your key from console.anthropic.com → API Keys"
+        )
+    with api_col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.link_button(
+            "🔑 Get API Key",
+            "https://console.anthropic.com/api-keys",
+            use_container_width=True
+        )
+
+    # Validate key format
+    if api_key and not api_key.startswith("sk-ant"):
+        st.error(
+            "❌ That doesn't look like a valid Anthropic key. "
+            "It should start with `sk-ant-`"
+        )
+        api_key = None
+
+    if api_key:
+        st.success("✅ API key entered. Ready to generate your report!")
+
+    # ── Report type selector ──────────────────────────────────────────────────
+    st.markdown("---")
+    c1, c2 = st.columns([1, 2])
     with c1:
-        rtype = st.selectbox("Report type:",
-                             ["full","summary","recommendations"],
-                             format_func=lambda x: {
-                                 "full":"📋 Full Report",
-                                 "summary":"⚡ Quick Summary",
-                                 "recommendations":"🎯 Recommendations"
-                             }[x])
+        rtype = st.selectbox(
+            "Report type:",
+            ["full", "summary", "recommendations"],
+            format_func=lambda x: {
+                "full":            "📋 Full Report (9 sections)",
+                "summary":         "⚡ Quick Summary (3 sections)",
+                "recommendations": "🎯 Recommendations Focus"
+            }[x]
+        )
     with c2:
-        st.info("**Full** = 9 sections  |  "
-                "**Summary** = 3 sections  |  "
-                "**Recommendations** = action-focused")
+        st.info({
+            "full":
+                "**Full Report** — Executive Summary → Key Metrics → "
+                "Trends → Correlations → Insights → Risks → Recommendations → Conclusion",
+            "summary":
+                "**Quick Summary** — Fast 3-section overview. Best for a quick read.",
+            "recommendations":
+                "**Recommendations** — Deep-dive on actions, next steps, and decisions."
+        }[rtype])
 
-    cb, _ = st.columns([1,4])
+    # ── Generate button ───────────────────────────────────────────────────────
+    cb, _ = st.columns([1, 4])
     with cb:
-        gen = st.button("🤖 Generate Report",
-                        type="primary",
-                        use_container_width=True,
-                        disabled=not api_key)
+        gen = st.button(
+            "🤖 Generate AI Report",
+            type="primary",
+            use_container_width=True,
+            disabled=not api_key
+        )
 
     if not api_key:
-        st.warning("⚠️ Enter your Claude API key to generate report.")
+        st.warning(
+            "⚠️ Enter your Anthropic API key above to generate the report.  \n"
+            "Don't have one? Open the **guide at the top** of this section."
+        )
 
+    # ── Run generation ────────────────────────────────────────────────────────
     if gen and api_key:
-        with st.spinner("🤖 Claude is analysing your data..."):
+        with st.spinner("🤖 Claude AI is reading your data and writing the report..."):
             try:
-                prog = st.progress(0, text="Building context...")
+                prog = st.progress(0, text="Building data context...")
                 time.sleep(0.4)
                 prog.progress(30, text="Sending to Claude AI...")
                 raw  = generate_report(df, api_key, user_requirement, rtype)
-                prog.progress(85, text="Formatting...")
+                prog.progress(85, text="Formatting report...")
                 full = format_report_as_text(raw)
-                st.session_state.report_raw  = raw
-                st.session_state.report_text = full
+                st.session_state.report_raw   = raw
+                st.session_state.report_text  = full
                 st.session_state.chat_api_key = api_key
                 prog.progress(100, text="✅ Done!")
                 time.sleep(0.3)
                 prog.empty()
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(
+                    f"❌ Report generation failed: {e}\n\n"
+                    "**Common causes:**\n"
+                    "- Invalid or expired API key\n"
+                    "- Insufficient Anthropic account credits\n"
+                    "- Network/internet issue\n\n"
+                    "Go to [console.anthropic.com](https://console.anthropic.com) "
+                    "to check your key and credits."
+                )
                 st.stop()
 
+    # ── Display report ────────────────────────────────────────────────────────
     if st.session_state.report_raw:
         st.markdown("---")
-        st.markdown("#### 📄 Report")
+        st.markdown("#### 📄 Your AI Report")
+        st.success("✅ Report generated successfully by Claude AI!")
+
         for i, section in enumerate(
                 st.session_state.report_raw.split("## ")):
             if not section.strip():
@@ -459,43 +671,49 @@ def render_report_section(df, user_requirement):
             if i == 0:
                 st.markdown(section)
                 continue
-            lines    = section.split("\n", 1)
-            s_title  = lines[0].strip()
-            s_body   = lines[1].strip() if len(lines)>1 else ""
-            with st.expander(f"📌 {s_title}", expanded=(i<=2)):
+            lines   = section.split("\n", 1)
+            s_title = lines[0].strip()
+            s_body  = lines[1].strip() if len(lines) > 1 else ""
+            with st.expander(f"📌 {s_title}", expanded=(i <= 2)):
                 st.markdown(s_body)
 
+        # ── Downloads ─────────────────────────────────────────────────────────
         st.markdown("---")
-        st.markdown("#### ⬇️ Download Report")
+        st.markdown("#### ⬇️ Download Your Report")
         d1, d2, d3 = st.columns(3)
         with d1:
-            st.download_button("📄 TXT",
-                               report_to_txt(st.session_state.report_text),
-                               "ai_report.txt", "text/plain",
-                               use_container_width=True)
+            st.download_button(
+                "📄 Download TXT",
+                report_to_txt(st.session_state.report_text),
+                "ai_report.txt", "text/plain",
+                use_container_width=True
+            )
         with d2:
             try:
-                st.download_button("📕 PDF",
-                                   report_to_pdf(st.session_state.report_text),
-                                   "ai_report.pdf", "application/pdf",
-                                   use_container_width=True)
+                st.download_button(
+                    "📕 Download PDF",
+                    report_to_pdf(st.session_state.report_text),
+                    "ai_report.pdf", "application/pdf",
+                    use_container_width=True
+                )
             except Exception as e:
-                st.warning(f"PDF error: {e}")
+                st.warning(f"PDF export error: {e}")
         with d3:
-            st.download_button("📝 Markdown",
-                               st.session_state.report_raw.encode("utf-8"),
-                               "ai_report.md", "text/markdown",
-                               use_container_width=True)
+            st.download_button(
+                "📝 Download Markdown",
+                st.session_state.report_raw.encode("utf-8"),
+                "ai_report.md", "text/markdown",
+                use_container_width=True
+            )
 
 
 if (st.session_state.get("run_complete")
         and st.session_state.df_clean is not None
-        and "Report" in st.session_state.get("output_type","")):
+        and "Report" in st.session_state.get("output_type", "")):
     render_report_section(
         st.session_state.df_clean,
-        st.session_state.get("user_prompt","")
+        st.session_state.get("user_prompt", "")
     )
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SECTION 6: ASK YOUR DATA CHATBOT
